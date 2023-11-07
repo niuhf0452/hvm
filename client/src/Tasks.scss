@@ -1,0 +1,50 @@
+.tasks__paper {
+  padding: 32px;
+  width: 800px;
+  margin: 80px auto;
+}
+
+.tasks__title {
+  margin-bottom: 16px;
+  font-size: 24px;
+}
+
+.tasks__main {
+  display: flex;
+  height: 320px;
+}
+
+.tasks__list {
+  width: 300px;
+  overflow-y: auto;
+}
+
+.tasks__list--center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.tasks__item-button {
+  width: 100%;
+}
+
+.tasks__item-name {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.tasks__output {
+  padding: 16px;
+  margin-left: 8px;
+  flex: 1;
+  overflow: auto;
+  background: #f4f4f4;
+}
+
+.tasks__buttons {
+  margin-top: 32px;
+  text-align: right;
+}

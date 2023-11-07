@@ -1,0 +1,41 @@
+.files {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.files__list {
+  flex: 1;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.files__list--center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.files__item-button {
+  width: 100%;
+}
+
+.files__name {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.files__size {
+  color: #999;
+  white-space: nowrap;
+  font-size: 0.8em;
+}
+
+.files__buttons {
+  padding: 16px;
+  > * {
+    margin-right: 8px !important;
+  }
+}
