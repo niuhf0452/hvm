@@ -24,9 +24,9 @@ export default function Player(props: PlayerProps) {
   };
 
   const time = (seconds: number) => {
-    let h = (seconds / 3600).toFixed(0).padStart(2, "0");
-    let m = ((seconds % 3600) / 60).toFixed(0).padStart(2, "0");
-    let s = (seconds % 60).toFixed(0).padStart(2, "0");
+    const h = (seconds / 3600).toFixed(0).padStart(2, "0");
+    const m = ((seconds % 3600) / 60).toFixed(0).padStart(2, "0");
+    const s = (seconds % 60).toFixed(0).padStart(2, "0");
     return `${h}:${m}:${s}`;
   };
 
@@ -49,7 +49,7 @@ export default function Player(props: PlayerProps) {
       `/api/media/cut?path=${p}&from=${from}&to=${to}`,
       {
         method: "POST",
-      }
+      },
     );
     if (response.status == 200) {
       toast.success("Task added for cutting file!");

@@ -25,7 +25,7 @@ export default function Files(props: FilesProps) {
   const [path, setPath] = createSignal("/");
   const [file, setFile] = createSignal<MediaFile | undefined>(undefined);
   const [files, { refetch }] = createFetch<MediaFile[]>(
-    () => `/api/media/browse?path=${encodeURIComponent(path())}`
+    () => `/api/media/browse?path=${encodeURIComponent(path())}`,
   );
 
   const onRefresh = () => {
