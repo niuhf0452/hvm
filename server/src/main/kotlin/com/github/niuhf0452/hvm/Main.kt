@@ -45,21 +45,21 @@ fun Application.configure(
     }
     routing {
         route(appConfig.rootPath) {
-            get("/media/browse") {
+            get("/api/media/browse") {
                 val path = call.request.queryParameters.getOrFail("path")
                 val files = mediaService.listFolder(path)
                 call.response.cacheControl(CacheControl.NoCache(CacheControl.Visibility.Public))
                 call.response.status(HttpStatusCode.OK)
                 call.respond(files)
             }
-            post("/media/move") {
+            post("/api/media/move") {
                 val from = call.request.queryParameters.getOrFail("from")
                 val to = call.request.queryParameters.getOrFail("to")
                 mediaService.move(from, to)
                 call.response.cacheControl(CacheControl.NoCache(CacheControl.Visibility.Public))
                 call.response.status(HttpStatusCode.OK)
             }
-            post("/media/cut") {
+            post("/api/media/cut") {
                 val path = call.request.queryParameters.getOrFail("path")
                 val from = call.request.queryParameters.getOrFail("from")
                 val to = call.request.queryParameters.getOrFail("to")
@@ -67,17 +67,18 @@ fun Application.configure(
                 call.response.cacheControl(CacheControl.NoCache(CacheControl.Visibility.Public))
                 call.response.status(HttpStatusCode.OK)
             }
-            get("/tasks") {
+            get("/api/tasks") {
                 val tasks = taskService.listTasks()
                 call.response.cacheControl(CacheControl.NoCache(CacheControl.Visibility.Public))
                 call.response.status(HttpStatusCode.OK)
                 call.respond(tasks)
             }
             appConfig.mediaFolders.forEach { mediaFolder ->
-                staticFiles(remotePath = "/media/file/${mediaFolder.name}", dir = mediaFolder.resolvedPath) {
+                staticFiles(remotePath = "/api/media/file/${mediaFolder.name}", dir = mediaFolder.resolvedPath) {
                     enableAutoHeadResponse()
                 }
             }
+            staticResources(remotePath = "/", basePackage = "web")
         }
     }
 }

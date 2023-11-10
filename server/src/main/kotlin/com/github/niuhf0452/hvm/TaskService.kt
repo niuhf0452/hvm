@@ -7,10 +7,9 @@ import java.util.concurrent.atomic.AtomicReference
 
 @Serializable
 data class TaskStatus(
-        val id: Long,
-        val name: String,
-        val progress: Int, // unit 1/1000
-        val output: String
+    val id: Long,
+    val name: String,
+    val output: String
 )
 
 class TaskService {
@@ -19,15 +18,12 @@ class TaskService {
 
     fun listTasks(): List<TaskStatus> {
         return tasks.map { task ->
-            var progress = (task.progress.get() * 1000 / task.size).toInt()
-            if (progress < 0) progress = -1
-            else if (progress > 1000) progress = 1000
-            TaskStatus(task.id, task.name, progress, task.output.get())
+            TaskStatus(task.id, task.name, task.output.get())
         }
     }
 
-    fun submitTask(name: String, size: Long, kill: () -> Unit): Task {
-        val task = Task(name, size, kill)
+    fun submitTask(name: String, kill: () -> Unit): Task {
+        val task = Task(name, kill)
         tasks.add(task)
         return task
     }
@@ -36,17 +32,12 @@ class TaskService {
         tasks.find { it.id == id }?.kill?.invoke()
     }
 
-    inner class Task(val name: String, val size: Long, val kill: () -> Unit) {
+    inner class Task(val name: String, val kill: () -> Unit) {
         val id = taskIdGen.incrementAndGet()
-        val progress = AtomicLong(0)
-        val output = AtomicReference<String>("")
+        val output = AtomicReference("")
 
         fun done() {
             tasks.remove(this)
-        }
-
-        fun updateProgress(progress: Long) {
-            this.progress.set(progress)
         }
 
         fun appendOutput(output: String) {

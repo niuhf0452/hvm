@@ -4,11 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.double
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import java.io.InputStreamReader
 
 @Serializable
 data class MediaFile(val name: String, val path: String, val size: Long, val isDirectory: Boolean)
@@ -67,7 +62,6 @@ class MediaService(private val appConfig: AppConfig, private val taskService: Ta
             }
             val clip = computeClipFile(file)
             launch {
-                val length = getVideoDuration(file).toLong()
                 val args = listOf(
                     "docker",
                     "run", "--rm",
@@ -85,7 +79,7 @@ class MediaService(private val appConfig: AppConfig, private val taskService: Ta
                     .redirectOutput(ProcessBuilder.Redirect.PIPE)
                     .redirectError(ProcessBuilder.Redirect.PIPE)
                     .start()
-                val task = taskService.submitTask("Cut file: $from", length, kill = proc::destroyForcibly)
+                val task = taskService.submitTask("Cut file: $from", kill = proc::destroyForcibly)
                 val reader = proc.inputStream.bufferedReader()
                 try {
                     task.appendOutput(args.joinToString(" ", postfix = "\n"))
@@ -98,40 +92,6 @@ class MediaService(private val appConfig: AppConfig, private val taskService: Ta
                 }
             }
         }
-    }
-
-    private fun getVideoDuration(file: java.io.File): Double {
-        val args = listOf(
-            "docker",
-            "run", "--rm",
-            "-v", "${file.parentFile}:/data",
-            "--entrypoint", "ffprobe",
-            "linuxserver/ffmpeg",
-            "-show_entries", "format=duration",
-            "-v", "quiet",
-            "-of", "json",
-            "-i", "/data/${file.name}"
-        )
-        val p = ProcessBuilder(args.toList())
-            .redirectOutput(ProcessBuilder.Redirect.PIPE)
-            .redirectError(ProcessBuilder.Redirect.PIPE)
-            .start()
-        p.waitFor()
-        if (p.exitValue() != 0) {
-            val error = p.errorStream.reader().use(InputStreamReader::readText)
-            throw IllegalStateException("ffprobe failed:\n$error")
-        }
-        val text = p.inputStream.reader().use(InputStreamReader::readText)
-        val json = try {
-            Json.parseToJsonElement(text)
-        } catch (e: Exception) {
-            throw IllegalStateException("cannot parse ffprobe output:\n$text\n", e)
-        }
-        return json.jsonObject["format"]
-            ?.jsonObject?.get("duration")
-            ?.jsonPrimitive
-            ?.double
-            ?: -1.0
     }
 
     private fun normalizePath(path: String): String {

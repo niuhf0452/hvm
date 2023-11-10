@@ -49,9 +49,6 @@ kotlin {
 
 graalvmNative {
     toolchainDetection.set(true)
-}
-
-graalvmNative {
     binaries {
         named("main") {
             imageName.set("hvm")
@@ -59,12 +56,10 @@ graalvmNative {
             buildArgs.add("-O4")
             useFatJar.set(true)
         }
-        named("test") {
-            buildArgs.add("-O0")
+        all {
+            resources.autodetect()
+            buildArgs.addAll("--verbose", "--initialize-at-build-time=ch.qos.logback,org.slf4j")
         }
-    }
-    binaries.all {
-        buildArgs.addAll("--verbose", "--initialize-at-build-time=ch.qos.logback,org.slf4j")
     }
 }
 
