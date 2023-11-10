@@ -11,6 +11,5 @@ jobs:
           distribution: temurin
           java-version: 17
       - name: Run test
-        run: |
-          cd server
-          ./gradlew test
+        run: ./gradlew test
+        working-directory: server
