@@ -32,7 +32,7 @@ export default function Files(props: FilesProps) {
     refetch();
   };
 
-  const onFileClick = (file: MediaFile) => () => {
+  const onFileClick = (file: MediaFile) => {
     if (file.isDirectory) {
       setPath(file.path);
     } else {
@@ -95,7 +95,7 @@ export default function Files(props: FilesProps) {
                   <ListItem disablePadding>
                     <ListItemButton
                       class="files__item-button"
-                      onClick={onFileClick(file)}
+                      onClick={() => onFileClick(file)}
                     >
                       <ListItemIcon>
                         {file.isDirectory ? <Folder /> : <VideoFile />}

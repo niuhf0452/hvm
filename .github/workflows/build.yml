@@ -42,6 +42,7 @@ jobs:
           retention-days: 1
   build-server:
     runs-on: ubuntu-latest
+    needs: build-client
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
