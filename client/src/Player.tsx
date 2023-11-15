@@ -24,9 +24,15 @@ export default function Player(props: PlayerProps) {
   };
 
   const time = (seconds: number) => {
-    const h = (seconds / 3600).toFixed(0).padStart(2, "0");
-    const m = ((seconds % 3600) / 60).toFixed(0).padStart(2, "0");
-    const s = (seconds % 60).toFixed(0).padStart(2, "0");
+    const h = Math.floor(seconds / 3600)
+      .toFixed(0)
+      .padStart(2, "0");
+    const m = Math.floor((seconds % 3600) / 60)
+      .toFixed(0)
+      .padStart(2, "0");
+    const s = Math.floor(seconds % 60)
+      .toFixed(0)
+      .padStart(2, "0");
     return `${h}:${m}:${s}`;
   };
 
@@ -49,7 +55,7 @@ export default function Player(props: PlayerProps) {
       `/api/media/cut?path=${p}&from=${from}&to=${to}`,
       {
         method: "POST",
-      },
+      }
     );
     if (response.status == 200) {
       toast.success("Task added for cutting file!");
@@ -69,13 +75,9 @@ export default function Player(props: PlayerProps) {
   return (
     <Paper class="player">
       <div class="player__title">{props.file?.name}</div>
-      <video
-        class="player__video"
-        ref={(el) => (video = el)}
-        src={playerUrl()}
-        controls
-        autoplay
-      />
+      <div class="player__video">
+        <video ref={(el) => (video = el)} src={playerUrl()} controls autoplay />
+      </div>
       <Divider />
       <div class="player__tools">
         <IconButton onClick={onStart}>

@@ -26,7 +26,11 @@ export default function Tasks() {
   const [selected, setSelected] = createSignal(0);
   const [tasks, { refetch }] = createFetch<Task[]>("/api/tasks");
 
-  createPolled(() => refetch(), 5000);
+  createPolled(() => {
+    if (open()) {
+      refetch();
+    }
+  }, 5000);
   createComputed(() => {
     setSelected((id) => {
       const ts = tasks();

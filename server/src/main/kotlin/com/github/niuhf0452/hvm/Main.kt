@@ -73,6 +73,21 @@ fun Application.configure(
                 call.response.status(HttpStatusCode.OK)
                 call.respond(tasks)
             }
+            delete("/api/tasks/task/{id}") {
+                val kill = call.request.queryParameters.get("kill") == "true"
+                val id = call.parameters.getOrFail("id").toLong()
+                if (kill) {
+                    taskService.kill(id)
+                }
+                taskService.remove(id)
+                call.response.cacheControl(CacheControl.NoCache(CacheControl.Visibility.Public))
+                call.response.status(HttpStatusCode.NoContent)
+            }
+            delete("/api/tasks") {
+                taskService.clear()
+                call.response.cacheControl(CacheControl.NoCache(CacheControl.Visibility.Public))
+                call.response.status(HttpStatusCode.NoContent)
+            }
             appConfig.mediaFolders.forEach { mediaFolder ->
                 staticFiles(remotePath = "/api/media/file/${mediaFolder.name}", dir = mediaFolder.resolvedPath) {
                     enableAutoHeadResponse()

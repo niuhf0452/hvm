@@ -32,13 +32,17 @@ class TaskService {
         tasks.find { it.id == id }?.kill?.invoke()
     }
 
+    fun remove(id: Long) {
+        tasks.removeIf { it.id == id }
+    }
+
+    fun clear() {
+        tasks.clear()
+    }
+
     inner class Task(val name: String, val kill: () -> Unit) {
         val id = taskIdGen.incrementAndGet()
         val output = AtomicReference("")
-
-        fun done() {
-            tasks.remove(this)
-        }
 
         fun appendOutput(output: String) {
             this.output.updateAndGet { it + output }

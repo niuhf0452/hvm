@@ -80,15 +80,11 @@ class MediaService(private val appConfig: AppConfig, private val taskService: Ta
                     .redirectError(ProcessBuilder.Redirect.PIPE)
                     .start()
                 val task = taskService.submitTask("Cut file: $from", kill = proc::destroyForcibly)
-                val reader = proc.inputStream.bufferedReader()
-                try {
+                proc.inputStream.bufferedReader().use { reader ->
                     task.appendOutput(args.joinToString(" ", postfix = "\n"))
                     reader.lines().forEach { line ->
                         task.appendOutput(line)
                     }
-                } finally {
-                    reader.close()
-                    task.done()
                 }
             }
         }
