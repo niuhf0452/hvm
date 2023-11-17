@@ -6,22 +6,16 @@ on:
         description: "Release tag"
         required: true
         type: string
-  push:
-    tags:
-      - v0.*
 jobs:
   build-client:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: ["18.x"]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 18
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18.x
       - uses: pnpm/action-setup@v2
         with:
           version: 8
