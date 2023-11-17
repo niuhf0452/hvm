@@ -63,17 +63,13 @@ class MediaService(private val appConfig: AppConfig, private val taskService: Ta
             val clip = computeClipFile(file)
             launch {
                 val args = listOf(
-                    "docker",
-                    "run", "--rm",
-                    "-v", "${file.parentFile}:/data",
-                    "--entrypoint", "ffmpeg",
-                    "linuxserver/ffmpeg",
-                    "-i", "/data/${file.name}",
+                    "ffmpeg",
+                    "-i", file.toString(),
                     "-ss", from,
                     "-t", duration.toString(),
                     "-vcodec", "copy",
                     "-acodec", "copy",
-                    "/data/${clip.name}"
+                    "${file.parentFile}/${clip.name}"
                 )
                 val proc = ProcessBuilder(args)
                     .redirectOutput(ProcessBuilder.Redirect.PIPE)
