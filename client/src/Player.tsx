@@ -55,7 +55,7 @@ export default function Player(props: PlayerProps) {
       `/api/media/cut?path=${p}&from=${from}&to=${to}`,
       {
         method: "POST",
-      }
+      },
     );
     if (response.status == 200) {
       toast.success("Task added for cutting file!");
