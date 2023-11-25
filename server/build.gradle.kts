@@ -2,9 +2,10 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
+    idea
+    application
     kotlin("jvm") version "1.9.20"
     kotlin("plugin.serialization") version "1.9.20"
-    application
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("org.graalvm.buildtools.native") version "0.9.28"
 }
@@ -16,6 +17,13 @@ repositories {
     mavenCentral()
 }
 
+idea {
+    module {
+        isDownloadJavadoc = true
+        isDownloadSources = true
+    }
+}
+
 application {
     mainClass.set("com.github.niuhf0452.hvm.MainKt")
 }
@@ -25,7 +33,7 @@ object Ver {
     const val logback = "1.4.11"
     const val serialization = "1.6.0"
     const val ktor = "2.3.5"
-
+    const val ffmpeg = "0.8.0"
     const val junit = "5.9.3"
 }
 
@@ -39,6 +47,7 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation:${Ver.ktor}")
     implementation("io.ktor:ktor-server-partial-content:${Ver.ktor}")
     implementation("io.ktor:ktor-server-status-pages:${Ver.ktor}")
+    implementation("net.bramp.ffmpeg:ffmpeg:${Ver.ffmpeg}")
     testImplementation("org.junit.jupiter:junit-jupiter:${Ver.junit}")
     testImplementation(kotlin("test", Ver.kotlin))
 }

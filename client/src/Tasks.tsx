@@ -1,114 +1,102 @@
-import { For, Match, Switch, createComputed, createSignal } from "solid-js";
-import { createFetch } from "@solid-primitives/fetch";
-import { createPolled } from "@solid-primitives/timer";
+import { For, createComputed } from "solid-js";
 import { List as ListIcon } from "@suid/icons-material";
 import {
   Button,
   IconButton,
   Modal,
   Paper,
-  List,
-  ListItemButton,
-  ListItemText,
-  CircularProgress,
+  LinearProgress,
 } from "@suid/material";
+import toast from "solid-toast";
+import { useSSE } from "./sse";
+import useModal from "./Modal";
+import { Task, TaskState } from "./Types";
 import "./Tasks.scss";
 
-type Task = {
-  id: number;
-  name: string;
-  progress: number; // unit 1/1000
-  output: string;
+type TaskId = number;
+type LoadingState = {
+  toastId: string | undefined;
+  errors: TaskId[];
 };
 
 export default function Tasks() {
-  const [open, setOpen] = createSignal(false);
-  const [selected, setSelected] = createSignal(0);
-  const [tasks, { refetch }] = createFetch<Task[]>("/api/tasks");
-
-  createPolled(() => {
-    if (open()) {
-      refetch();
-    }
-  }, 5000);
-  createComputed(() => {
-    setSelected((id) => {
-      const ts = tasks();
-      if (!ts || ts.length === 0) return 0;
-      const t = ts.find((t) => t.id === id);
-      return t ? id : ts[0].id;
-    });
-    return tasks();
+  const { value: tasks } = useSSE<Task[]>({
+    url: "/api/tasks",
+    defaultValue: [],
+    onMessage: (tasks, arr) =>
+      arr.reduce(
+        (a, b) => (b.type === "data" ? (JSON.parse(b.value) as Task[]) : a),
+        tasks
+      ),
   });
+  const { isOpen, open, close } = useModal();
 
-  const onOpen = () => {
-    setOpen(true);
-    window.addEventListener("keyup", onKeyUp);
-  };
-  const onClose = () => {
-    setOpen(false);
-    window.removeEventListener("keyup", onKeyUp);
-  };
-  const onKeyUp = (e: KeyboardEvent) => {
-    if (e.key == "Escape") {
-      onClose();
-    }
-  };
-  const onSelect = (task: Task) => () => {
-    setSelected(task.id);
-  };
-  const output = () => {
-    const ts = tasks();
-    if (!ts) return;
-    const id = selected();
-    const t = ts.find((t) => t.id === id);
-    return t && t.output;
+  createComputed<LoadingState>(
+    (state) => {
+      let loading = false;
+      let errors = state.errors;
+      let toastId = state.toastId;
+      tasks().forEach((task) => {
+        if (
+          task.state === TaskState.Pending ||
+          task.state === TaskState.Running
+        ) {
+          loading = true;
+        }
+        if (
+          task.state === TaskState.Error &&
+          state.errors.indexOf(task.id) < 0
+        ) {
+          errors = [...state.errors, task.id];
+          toast.error(`Error while running task: ${task.error}`, {
+            duration: 5000,
+            position: "top-right",
+          });
+        }
+      });
+      if (loading && !toastId) {
+        toastId = toast.loading("Running tasks ...", {
+          position: "top-right",
+        });
+      } else if (!loading && toastId) {
+        toast.dismiss(toastId);
+      }
+      return { toastId, errors };
+    },
+    { toastId: undefined, errors: [] }
+  );
+
+  const onClear = () => {
+    fetch("/api/tasks/clear", { method: "POST" });
   };
 
   return (
     <>
-      <IconButton onClick={onOpen}>
+      <IconButton onClick={open}>
         <ListIcon />
       </IconButton>
-      <Modal open={open()}>
+      <Modal open={isOpen()}>
         <Paper class="tasks__paper">
           <div class="tasks__title">Tasks</div>
-          <div class="tasks__main">
-            <div class="tasks__list">
-              <Switch>
-                <Match when={tasks.loading}>
-                  <div class="tasks__list--center">
-                    <CircularProgress />
+          <div class="tasks__list">
+            <For each={tasks()}>
+              {(task) => (
+                <div class="tasks__item">
+                  <div class="tasks__item-name">{task.name}</div>
+                  <div class="tasks__item-progress">
+                    <LinearProgress
+                      variant="determinate"
+                      value={task.percent}
+                    />
                   </div>
-                </Match>
-                <Match when={tasks.error}>
-                  <div class="tasks__list--center">
-                    <span>Error</span>
-                  </div>
-                </Match>
-                <Match when={true}>
-                  <List>
-                    <For each={tasks()}>
-                      {(task) => (
-                        <ListItemButton
-                          class="tasks__item-button"
-                          selected={task.id == selected()}
-                          onClick={onSelect(task)}
-                        >
-                          <ListItemText class="tasks__item-name">
-                            {task.name}
-                          </ListItemText>
-                        </ListItemButton>
-                      )}
-                    </For>
-                  </List>
-                </Match>
-              </Switch>
-            </div>
-            <pre class="tasks__output">{output()}</pre>
+                  <div class="tasks__item-percent">{task.percent}%</div>
+                </div>
+              )}
+            </For>
           </div>
           <div class="tasks__buttons">
-            <Button onClick={onClose}>Close</Button>
+            <Button onClick={onClear}>Clear</Button>
+            <Button onClick={close}>Close</Button>
           </div>
         </Paper>
       </Modal>

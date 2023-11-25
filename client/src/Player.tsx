@@ -2,6 +2,7 @@ import { createSignal, createComputed, batch } from "solid-js";
 import { Paper, Divider, IconButton } from "@suid/material";
 import { Start, ContentCut } from "@suid/icons-material";
 import { toast } from "solid-toast";
+import fetch from "./fetch";
 import { MediaFile } from "./Types";
 import "./Player.scss";
 
@@ -55,7 +56,7 @@ export default function Player(props: PlayerProps) {
       `/api/media/cut?path=${p}&from=${from}&to=${to}`,
       {
         method: "POST",
-      },
+      }
     );
     if (response.status == 200) {
       toast.success("Task added for cutting file!");

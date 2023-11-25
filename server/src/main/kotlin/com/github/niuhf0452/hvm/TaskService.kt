@@ -1,51 +1,66 @@
 package com.github.niuhf0452.hvm
 
+import com.github.niuhf0452.hvm.impl.TaskServiceImpl
+import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.util.concurrent.ConcurrentLinkedQueue
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
+
+interface Task {
+    val id: Long
+    val name: String
+
+    suspend fun run(updater: TaskStateUpdater)
+
+    fun cancel()
+}
+
+interface TaskStateUpdater {
+    fun progress(percent: Int)
+    fun error(message: String)
+    fun finish()
+    fun cancel()
+}
 
 @Serializable
-data class TaskStatus(
+enum class TaskState {
+    @SerialName("pending")
+    Pending,
+
+    @SerialName("running")
+    Running,
+
+    @SerialName("finished")
+    Finished,
+
+    @SerialName("error")
+    Error,
+
+    @SerialName("canceled")
+    Canceled;
+
+    fun isCompleted(): Boolean {
+        return this == Finished || this == Error || this == Canceled
+    }
+}
+
+@Serializable
+data class TaskInfo(
     val id: Long,
     val name: String,
-    val output: String
+    val percent: Int,
+    val error: String?,
+    val state: TaskState,
 )
 
-class TaskService {
-    private val taskIdGen = AtomicLong(0)
-    private val tasks = ConcurrentLinkedQueue<Task>()
+interface TaskService : AutoCloseable {
+    fun submit(task: Task)
+    fun remove(id: Long)
+    fun clear()
+    fun subscribe(): Flow<List<TaskInfo>>
 
-    fun listTasks(): List<TaskStatus> {
-        return tasks.map { task ->
-            TaskStatus(task.id, task.name, task.output.get())
-        }
-    }
-
-    fun submitTask(name: String, kill: () -> Unit): Task {
-        val task = Task(name, kill)
-        tasks.add(task)
-        return task
-    }
-
-    fun kill(id: Long) {
-        tasks.find { it.id == id }?.kill?.invoke()
-    }
-
-    fun remove(id: Long) {
-        tasks.removeIf { it.id == id }
-    }
-
-    fun clear() {
-        tasks.clear()
-    }
-
-    inner class Task(val name: String, val kill: () -> Unit) {
-        val id = taskIdGen.incrementAndGet()
-        val output = AtomicReference("")
-
-        fun appendOutput(output: String) {
-            this.output.updateAndGet { it + output }
+    companion object {
+        fun create(config: TasksConfig): TaskService {
+            return TaskServiceImpl(config)
         }
     }
 }

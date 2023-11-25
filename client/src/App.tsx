@@ -1,4 +1,5 @@
 import { createSignal } from "solid-js";
+import { Toaster } from "solid-toast";
 import Files from "./Files";
 import Player from "./Player";
 import { MediaFile } from "./Types";
@@ -14,6 +15,7 @@ function App() {
     <div class="app">
       <Files onSelect={onFileSelect} />
       <Player file={file()} />
+      <Toaster />
     </div>
   );
 }

@@ -13,7 +13,9 @@ import {
 import { Refresh, Folder, VideoFile, ArrowUpward } from "@suid/icons-material";
 import { createFetch } from "@solid-primitives/fetch";
 import { MediaFile } from "./Types";
+import fetch from "./fetch";
 import Rename from "./Rename";
+import Delete from "./Delete";
 import Tasks from "./Tasks";
 import "./Files.scss";
 
@@ -26,6 +28,7 @@ export default function Files(props: FilesProps) {
   const [file, setFile] = createSignal<MediaFile | undefined>(undefined);
   const [files, { refetch }] = createFetch<MediaFile[]>(
     () => `/api/media/browse?path=${encodeURIComponent(path())}`,
+    { fetch: fetch }
   );
 
   const onRefresh = () => {
@@ -121,7 +124,8 @@ export default function Files(props: FilesProps) {
         <IconButton onClick={onRefresh}>
           <Refresh />
         </IconButton>
-        <Rename file={file()} />
+        <Rename file={file()} onRenamed={onRefresh} />
+        <Delete file={file()} onDeleted={onRefresh} />
         <Tasks />
       </div>
     </Paper>

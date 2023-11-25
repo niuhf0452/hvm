@@ -2,9 +2,31 @@ package com.github.niuhf0452.hvm
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlin.time.Duration
 
 @Serializable
-data class AppConfig(val port: Int, val rootPath: String, val mediaFolders: List<MediaFolder>)
+data class AppConfig(
+    val port: Int,
+    val rootPath: String,
+    val library: LibraryConfig,
+    val tasks: TasksConfig,
+    val idGen: IdGenConfig
+)
+
+@Serializable
+data class LibraryConfig(val folders: List<MediaFolder>) {
+    fun parsePath(nPath: String): java.io.File {
+        val pathList = nPath.split("/")
+        val name = pathList.first()
+        val lib = folders.find { it.name == name }
+            ?: throw IllegalArgumentException("path $name not found")
+        val file = lib.resolvedPath.resolve(pathList.drop(1).joinToString("/"))
+        if (!file.canonicalPath.startsWith(lib.resolvedPath.canonicalPath)) {
+            throw IllegalArgumentException("path $nPath not found")
+        }
+        return file
+    }
+}
 
 @Serializable
 data class MediaFolder(val name: String, val path: String) {
@@ -23,3 +45,9 @@ data class MediaFolder(val name: String, val path: String) {
         return java.io.File(p)
     }
 }
+
+@Serializable
+data class TasksConfig(val concurrency: Int, val cleanUpDelay: Duration)
+
+@Serializable
+data class IdGenConfig(val workerId: Int)
