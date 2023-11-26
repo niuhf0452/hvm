@@ -52,21 +52,18 @@ jobs:
       - name: Run build
         run: ./gradlew build
         working-directory: server
-      - name: Get version
-        run: echo "RELEASE_VERSION=${{ inputs.tag }}" >> $GITHUB_ENV
       - name: Rename artifact
-        run: mv server/build/libs/hvm-1.0-SNAPSHOT-fat.jar hvm-${RELEASE_VERSION}.jar
-        run: cp hvm-${RELEASE_VERSION}.jar hvm.jar
+        run: mv server/build/libs/hvm-1.0-SNAPSHOT-fat.jar hvm-${{ inputs.tag }}.jar
       - name: Archive artifacts
         uses: softprops/action-gh-release@v1
         with:
-          files: hvm-${{env.RELEASE_VERSION}}.jar
-          tag_name: ${{env.RELEASE_VERSION}}
+          files: hvm-${{ inputs.tag }}.jar
+          tag_name: ${{ inputs.tag }}
       - name: Archive server artifacts
         uses: actions/upload-artifact@v3
         with:
           name: server
-          path: hvm.jar
+          path: hvm-${{ inputs.tag }}.jar
           retention-days: 1
   build-image:
     runs-on: ubuntu-latest
@@ -79,6 +76,8 @@ jobs:
         with:
           name: server
           path: docker
+      - name: Rename Jar File
+        run: mv docker/hvm-${{ inputs.tag }}.jar docker/hvm.jar
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
