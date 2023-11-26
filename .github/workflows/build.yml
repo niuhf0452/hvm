@@ -28,10 +28,10 @@ jobs:
       - name: Build client
         run: pnpm run build
         working-directory: client
-      - name: Archive webapp artifacts
+      - name: Archive client artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: webapp
+          name: client
           path: client/dist/index.html
           retention-days: 1
   build-server:
@@ -44,10 +44,10 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Download webapp artifact
+      - name: Download client artifact
         uses: actions/download-artifact@v3
         with:
-          name: webapp
+          name: client
           path: server/src/main/resources/web
       - name: Run build
         run: ./gradlew build
@@ -56,8 +56,44 @@ jobs:
         run: echo "RELEASE_VERSION=${{ inputs.tag }}" >> $GITHUB_ENV
       - name: Rename artifact
         run: mv server/build/libs/hvm-1.0-SNAPSHOT-fat.jar hvm-${RELEASE_VERSION}.jar
+        run: cp hvm-${RELEASE_VERSION}.jar hvm.jar
       - name: Archive artifacts
         uses: softprops/action-gh-release@v1
         with:
           files: hvm-${{env.RELEASE_VERSION}}.jar
           tag_name: ${{env.RELEASE_VERSION}}
+      - name: Archive server artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: server
+          path: hvm.jar
+          retention-days: 1
+  build-image:
+    runs-on: ubuntu-latest
+    needs: build-server
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+      - name: Download server artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: server
+          path: docker
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: niuhf0452/hvm:${{ inputs.tag }}
+          file: ./docker/Dockerfile
+          context: ./docker
+  trigger-webhook:
+    runs-on: ubuntu-latest
+    needs: build-image
+    steps:
+      - name: Trigger Webhook
+        run: curl -X POST https://hooks.isvhal.com/update_image?app=hvm -u '${{ secrets.ISVHAL_HOOK_AUTH }}'
