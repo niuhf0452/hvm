@@ -97,4 +97,4 @@ jobs:
     needs: build-image
     steps:
       - name: Trigger Webhook
-        run: curl -X POST https://hooks.isvhal.com/update_image?app=hvm -u '${{ secrets.ISVHAL_HOOK_AUTH }}'
+        run: curl -X POST -H 'X-Hook-Timeout: 120' https://hooks.isvhal.com/update_image?app=hvm -u '${{ secrets.ISVHAL_HOOK_AUTH }}'
