@@ -25,6 +25,8 @@ import kotlinx.serialization.json.Json
 @OptIn(ExperimentalSerializationApi::class)
 fun main() {
     val hoconConfig = ConfigFactory.load()
+        .withFallback(ConfigFactory.parseResources("defaults.conf"))
+        .resolve()
     val appConfig = Hocon.decodeFromConfig<AppConfig>(hoconConfig.getConfig("hvm"))
     val idGen = IdGen.create(System::currentTimeMillis, appConfig.idGen.workerId)
     val taskService = TaskService.create(appConfig.tasks)
