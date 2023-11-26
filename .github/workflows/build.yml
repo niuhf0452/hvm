@@ -87,7 +87,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          tags: niuhf0452/hvm:${{ inputs.tag }}
+          tags: |
+            niuhf0452/hvm:${{ inputs.tag }}
+            niuhf0452/hvm:latest
           file: ./docker/Dockerfile
           context: ./docker
   trigger-webhook:
